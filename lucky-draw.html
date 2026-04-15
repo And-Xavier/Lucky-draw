@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>专属优惠摇号</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --thu-purple:    #660874;
+      --thu-purple-dk: #3d0045;
+      --thu-purple-md: #8c12a0;
+      --thu-purple-lt: #b030c8;
+      --gold:          #E8B84B;
+      --gold-lt:       #f5d87a;
+      --gold-dk:       #b88a20;
+      --bg-deep:       #120018;
+      --bg-mid:        #1e002a;
+      --text-dim:      rgba(232,184,75,0.65);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg-deep);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Noto Serif SC', serif;
+    }
+    .app {
+      min-height: 100vh;
+      width: 100%;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(140,18,160,0.35) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 40% at 80% 110%, rgba(102,8,116,0.2) 0%, transparent 60%),
+        var(--bg-deep);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .app::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(232,184,75,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(232,184,75,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+    .header { text-align: center; margin-bottom: 36px; }
+    .session-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(232,184,75,0.1);
+      border: 1px solid rgba(232,184,75,0.25);
+      border-radius: 20px;
+      padding: 5px 16px;
+      font-size: 12px;
+      letter-spacing: 3px;
+      color: var(--gold);
+      margin-bottom: 16px;
+    }
+    .session-badge::before, .session-badge::after { content: '✦'; font-size: 8px; opacity: 0.7; }
+    .header h1 {
+      font-family: 'ZCOOL XiaoWei', serif;
+      font-size: clamp(26px, 6vw, 42px);
+      color: var(--gold-lt);
+      letter-spacing: 4px;
+      text-shadow: 0 0 40px rgba(232,184,75,0.4), 0 2px 4px rgba(0,0,0,0.8);
+    }
+    .header-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 14px;
+      justify-content: center;
+    }
+    .header-line span {
+      display: block; height: 1px; width: 60px;
+      background: linear-gradient(90deg, transparent, var(--gold-dk));
+    }
+    .header-line span:last-child { background: linear-gradient(90deg, var(--gold-dk), transparent); }
+    .header-line em { font-style: normal; font-size: 11px; color: var(--gold-dk); letter-spacing: 3px; }
+
+    .card {
+      background: linear-gradient(160deg, rgba(61,0,69,0.9) 0%, rgba(30,0,42,0.95) 100%);
+      border: 1px solid rgba(140,18,160,0.4);
+      border-radius: 20px;
+      padding: 40px 36px 36px;
+      width: 100%;
+      max-width: 420px;
+      position: relative;
+      box-shadow:
+        0 0 0 1px rgba(232,184,75,0.07),
+        0 0 60px rgba(102,8,116,0.4),
+        0 30px 80px rgba(0,0,0,0.7),
+        inset 0 1px 0 rgba(232,184,75,0.1);
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: -1px; left: 15%; right: 15%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      border-radius: 2px;
+    }
+    .card .corner {
+      position: absolute; width: 18px; height: 18px;
+      border-color: rgba(232,184,75,0.35); border-style: solid;
+    }
+    .corner-tl { top: 10px; left: 10px; border-width: 1px 0 0 1px; }
+    .corner-tr { top: 10px; right: 10px; border-width: 1px 1px 0 0; }
+    .corner-bl { bottom: 10px; left: 10px; border-width: 0 0 1px 1px; }
+    .corner-br { bottom: 10px; right: 10px; border-width: 0 1px 1px 0; }
+
+    .drum-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 32px; }
+    .drum-label { font-size: 11px; letter-spacing: 4px; color: var(--text-dim); margin-bottom: 16px; }
+    .drum-frame { position: relative; width: 220px; height: 110px; }
+    .drum-display {
+      width: 100%; height: 100%;
+      background: linear-gradient(135deg, rgba(0,0,0,0.4), rgba(102,8,116,0.15));
+      border: 1px solid rgba(140,18,160,0.5);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 2px 12px rgba(0,0,0,0.6), 0 0 30px rgba(102,8,116,0.3);
+    }
+    .drum-display::after {
+      content: '';
+      position: absolute; top: 0; left: -100%;
+      width: 50%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(232,184,75,0.06), transparent);
+      animation: sweep 3s ease-in-out infinite;
+    }
+    @keyframes sweep { 0% { left: -100%; } 60%, 100% { left: 150%; } }
+    .drum-shadow-t {
+      position: absolute; top: 0; left: 0; right: 0; height: 28px;
+      background: linear-gradient(180deg, rgba(30,0,42,0.9), transparent);
+      z-index: 2; pointer-events: none;
+    }
+    .drum-shadow-b {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 28px;
+      background: linear-gradient(0deg, rgba(30,0,42,0.9), transparent);
+      z-index: 2; pointer-events: none;
+    }
+    .drum-number {
+      font-family: 'ZCOOL XiaoWei', serif;
+      font-size: 76px; line-height: 1; letter-spacing: -2px;
+      color: var(--gold-lt);
+      text-shadow: 0 0 20px rgba(232,184,75,0.6), 0 0 50px rgba(232,184,75,0.2);
+      position: relative; z-index: 1; user-select: none;
+    }
+    .drum-number.settled { animation: pop-in 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+    .drum-number.glowing { animation: glow-pulse 1.4s ease-in-out infinite; }
+    @keyframes pop-in {
+      0% { transform: scale(1.4) translateY(-10px); opacity: 0.3; }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    @keyframes glow-pulse {
+      0%, 100% { text-shadow: 0 0 20px rgba(232,184,75,0.6), 0 0 50px rgba(232,184,75,0.2); }
+      50% { text-shadow: 0 0 40px rgba(232,184,75,1), 0 0 80px rgba(232,184,75,0.5), 0 0 120px rgba(180,48,200,0.3); }
+    }
+    .drum-unit {
+      position: absolute; bottom: 10px; right: 14px;
+      font-size: 14px; font-weight: 700;
+      color: rgba(232,184,75,0.6); letter-spacing: 1px; z-index: 3;
+    }
+
+    .roll-btn {
+      width: 100%; padding: 17px;
+      background: linear-gradient(135deg, var(--thu-purple-md) 0%, var(--thu-purple-dk) 50%, var(--thu-purple-md) 100%);
+      background-size: 200% 200%;
+      border: 1px solid rgba(180,48,200,0.5);
+      border-radius: 12px;
+      color: var(--gold-lt);
+      font-family: 'ZCOOL XiaoWei', serif;
+      font-size: 20px; letter-spacing: 6px;
+      cursor: pointer; position: relative; overflow: hidden;
+      box-shadow: 0 4px 24px rgba(102,8,116,0.5), inset 0 1px 0 rgba(232,184,75,0.15);
+      transition: transform 0.12s, box-shadow 0.12s;
+      outline: none;
+    }
+    .roll-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(140,18,160,0.6), inset 0 1px 0 rgba(232,184,75,0.2);
+    }
+    .roll-btn:active:not(:disabled) { transform: translateY(1px); }
+    .roll-btn:disabled { cursor: default; opacity: 0.55; }
+    .roll-btn::after {
+      content: '';
+      position: absolute; top: 0; left: -100%;
+      width: 50%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(232,184,75,0.12), transparent);
+      transition: left 0.45s;
+    }
+    .roll-btn:hover:not(:disabled)::after { left: 150%; }
+
+    /* 结果区 */
+    .result-box {
+      margin-top: 24px;
+      background: rgba(232,184,75,0.05);
+      border: 1px solid rgba(232,184,75,0.2);
+      border-radius: 12px;
+      padding: 20px 22px;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .result-box.show { opacity: 1; transform: translateY(0); }
+    .result-row {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 8px;
+    }
+    .result-row:last-child { margin-bottom: 0; }
+    .result-key { font-size: 11px; color: var(--text-dim); letter-spacing: 2px; }
+    .result-val { font-size: 12px; color: rgba(255,255,255,0.7); letter-spacing: 1px; }
+    .result-val.amount {
+      font-family: 'ZCOOL XiaoWei', serif;
+      font-size: 28px; color: var(--gold-lt);
+      text-shadow: 0 0 16px rgba(232,184,75,0.5);
+    }
+    .divider { height: 1px; background: rgba(232,184,75,0.12); margin: 10px 0; }
+
+    /* 验证码区 */
+    .verify-box {
+      margin-top: 16px;
+      background: rgba(102,8,116,0.2);
+      border: 1px dashed rgba(140,18,160,0.5);
+      border-radius: 10px;
+      padding: 14px 18px;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.5s ease 0.4s;
+    }
+    .verify-box.show { opacity: 1; }
+    .verify-label {
+      font-size: 10px; letter-spacing: 3px;
+      color: rgba(180,48,200,0.8); margin-bottom: 8px;
+    }
+    .verify-code {
+      font-family: 'Courier New', monospace;
+      font-size: 15px; letter-spacing: 3px;
+      color: var(--gold-lt);
+      word-break: break-all; line-height: 1.7;
+      text-shadow: 0 0 10px rgba(232,184,75,0.3);
+      user-select: all;
+    }
+    .verify-hint {
+      margin-top: 8px;
+      font-size: 10px; color: rgba(232,184,75,0.4); letter-spacing: 1px;
+    }
+
+    .result-tip {
+      text-align: center; font-size: 11px;
+      color: rgba(232,184,75,0.45); letter-spacing: 2px;
+      margin-top: 14px;
+      display: none;
+    }
+    .locked-notice {
+      margin-top: 14px; text-align: center;
+      font-size: 12px; color: rgba(180,48,200,0.7); letter-spacing: 2px;
+      display: none;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: rotate(0deg) translateX(0); }
+      15% { transform: rotate(-3deg) translateX(-4px); }
+      30% { transform: rotate(3deg) translateX(4px); }
+      45% { transform: rotate(-2deg) translateX(-3px); }
+      60% { transform: rotate(2deg) translateX(3px); }
+      75% { transform: rotate(-1deg) translateX(-1px); }
+    }
+    .card.shaking { animation: shake 0.5s ease-in-out; }
+
+    #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 999; }
+  </style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+<div class="app">
+  <div class="header">
+    <div class="session-badge">适用场次：南京</div>
+    <h1>摇出你的专属优惠</h1>
+    <div class="header-line">
+      <span></span><em>LUCKY DRAW</em><span></span>
+    </div>
+  </div>
+
+  <div class="card" id="card">
+    <div class="corner corner-tl"></div>
+    <div class="corner corner-tr"></div>
+    <div class="corner corner-bl"></div>
+    <div class="corner corner-br"></div>
+
+    <div class="drum-section">
+      <div class="drum-label">优惠金额（元）</div>
+      <div class="drum-frame">
+        <div class="drum-display">
+          <div class="drum-shadow-t"></div>
+          <div class="drum-shadow-b"></div>
+          <span class="drum-number" id="drumNum">--</span>
+          <span class="drum-unit">元</span>
+        </div>
+      </div>
+    </div>
+
+    <button class="roll-btn" id="rollBtn" onclick="handleRoll()">🎲 开始摇号</button>
+
+    <div class="result-box" id="resultBox">
+      <div class="result-row">
+        <span class="result-key">专属优惠</span>
+        <span class="result-val amount" id="resAmount">--</span>
+      </div>
+      <div class="divider"></div>
+      <div class="result-row">
+        <span class="result-key">摇号时间</span>
+        <span class="result-val" id="resTime">--</span>
+      </div>
+      <div class="result-row">
+        <span class="result-key">适用场次</span>
+        <span class="result-val">南京</span>
+      </div>
+    </div>
+
+    <div class="verify-box" id="verifyBox">
+      <div class="verify-label">✦ 防伪验证码 · 核销专用 ✦</div>
+      <div class="verify-code" id="verifyCode">--</div>
+      <div class="verify-hint">工作人员可通过验证页核实真伪</div>
+    </div>
+
+    <div class="locked-notice" id="lockedNotice">🔒 每台设备限摇一次，以上为您的专属优惠</div>
+    <div class="result-tip" id="resultTip">请截图保存（含验证码），凭此参与活动</div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════
+   ★ 运营配置区 — 每次换场只改这里 ★
+   ══════════════════════════════════════ */
+const CFG = {
+  MIN:        60,          // 最低优惠金额
+  MAX:        120,         // 最高优惠金额
+  CITY:       '南京',     // 适用城市（用户不可改）
+  CITY_CODE:  'NJ',        // 城市缩写（写入验证码）
+  // ⚠️ 密钥：自行改成你自己的随机字符串，与 verify.html 保持一致
+  SECRET_KEY: 'CHANGE_THIS_TO_YOUR_OWN_SECRET_2026',
+};
+const STORAGE_KEY = 'lucky_draw_v2';
+
+/* ── 北京时间 ── */
+function getBeijingTime() {
+  const now = new Date();
+  const bj = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Shanghai' }));
+  const p = n => String(n).padStart(2, '0');
+  return {
+    display: `${bj.getFullYear()}年${p(bj.getMonth()+1)}月${p(bj.getDate())}日 ${p(bj.getHours())}:${p(bj.getMinutes())}:${p(bj.getSeconds())}`,
+    compact: `${String(bj.getFullYear()).slice(2)}${p(bj.getMonth()+1)}${p(bj.getDate())}${p(bj.getHours())}${p(bj.getMinutes())}${p(bj.getSeconds())}`,
+  };
+}
+
+/* ── HMAC-SHA256 签名（浏览器原生 WebCrypto）── */
+async function hmacSign(message, secret) {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw', enc.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false, ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(message));
+  return Array.from(new Uint8Array(sig))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('')
+    .slice(0, 8)
+    .toUpperCase();
+}
+
+/* ── 生成验证码 ── */
+async function buildVerifyCode(amount, compact, cityCode) {
+  // 签名原文：城市+金额+时间，任何一项被篡改签名就对不上
+  const payload = `${cityCode}|${amount}|${compact}`;
+  const sig = await hmacSign(payload, CFG.SECRET_KEY);
+  // 格式：NJ-089-260415143012-A8F29C1D
+  const amt = String(amount).padStart(3, '0');
+  return `${cityCode}-${amt}-${compact}-${sig}`;
+}
+
+/* ── 彩纸 ── */
+function fireConfetti() {
+  const canvas = document.getElementById('confetti');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const colors = ['#E8B84B','#f5d87a','#b030c8','#8c12a0','#ffffff','#ffc0f0'];
+  const particles = Array.from({ length: 100 }, () => ({
+    x: Math.random() * canvas.width,
+    y: -20 - Math.random() * 150,
+    vx: (Math.random() - 0.5) * 3.5,
+    vy: 2.5 + Math.random() * 3.5,
+    size: 5 + Math.random() * 6,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    angle: Math.random() * Math.PI * 2,
+    spin: (Math.random() - 0.5) * 0.18,
+    alpha: 1,
+    isRect: Math.random() > 0.5,
+  }));
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      p.angle += p.spin; p.vy += 0.07;
+      if (p.y > canvas.height * 0.75) p.alpha -= 0.022;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, p.alpha);
+      ctx.translate(p.x, p.y); ctx.rotate(p.angle);
+      ctx.fillStyle = p.color;
+      if (p.isRect) ctx.fillRect(-p.size/2, -p.size/4, p.size, p.size/2);
+      else { ctx.beginPath(); ctx.arc(0,0,p.size/2,0,Math.PI*2); ctx.fill(); }
+      ctx.restore();
+    });
+    frame++;
+    if (frame < 130) requestAnimationFrame(draw);
+    else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  draw();
+}
+
+/* ── 渲染结果（含验证码） ── */
+function renderResult(amount, displayTime, verifyCode) {
+  const drumEl = document.getElementById('drumNum');
+  drumEl.textContent = amount;
+  drumEl.classList.add('glowing');
+
+  document.getElementById('resAmount').textContent = '¥ ' + amount;
+  document.getElementById('resTime').textContent = displayTime;
+
+  document.getElementById('resultBox').classList.add('show');
+  document.getElementById('verifyCode').textContent = verifyCode;
+  document.getElementById('verifyBox').classList.add('show');
+
+  document.getElementById('rollBtn').disabled = true;
+  document.getElementById('rollBtn').textContent = '已完成摇号';
+  document.getElementById('lockedNotice').style.display = 'block';
+  document.getElementById('resultTip').style.display = 'block';
+}
+
+/* ── 页面加载：检查历史记录 ── */
+window.addEventListener('DOMContentLoaded', () => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const d = JSON.parse(stored);
+      document.getElementById('drumNum').classList.add('settled');
+      renderResult(d.amount, d.displayTime, d.verifyCode);
+    }
+  } catch(e) {}
+});
+
+/* ── 主摇号 ── */
+let rolling = false;
+
+async function handleRoll() {
+  if (rolling) return;
+  rolling = true;
+
+  const btn = document.getElementById('rollBtn');
+  const drumEl = document.getElementById('drumNum');
+  const card = document.getElementById('card');
+
+  btn.disabled = true;
+  btn.textContent = '摇动中...';
+  drumEl.classList.remove('settled', 'glowing');
+
+  card.classList.add('shaking');
+  setTimeout(() => card.classList.remove('shaking'), 550);
+
+  const result = Math.floor(Math.random() * (CFG.MAX - CFG.MIN + 1)) + CFG.MIN;
+  const time = getBeijingTime();
+
+  let ticks = 0;
+  const TOTAL = 30;
+
+  function tick() {
+    ticks++;
+    const progress = ticks / TOTAL;
+    const delay = 55 + 145 * Math.pow(progress, 2.2);
+    if (ticks < TOTAL) {
+      drumEl.textContent = Math.floor(Math.random() * (CFG.MAX - CFG.MIN + 1)) + CFG.MIN;
+      setTimeout(tick, delay);
+    } else {
+      drumEl.textContent = result;
+      drumEl.classList.add('settled');
+
+      // 异步生成验证码后再展示
+      buildVerifyCode(result, time.compact, CFG.CITY_CODE).then(code => {
+        setTimeout(() => renderResult(result, time.display, code), 350);
+        setTimeout(() => fireConfetti(), 400);
+
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            amount: result,
+            displayTime: time.display,
+            verifyCode: code,
+          }));
+        } catch(e) {}
+
+        rolling = false;
+      });
+    }
+  }
+
+  setTimeout(tick, 55);
+}
+</script>
+</body>
+</html>
