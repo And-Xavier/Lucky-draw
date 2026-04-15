@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>专属优惠领取中心</title>
+    <style>
+        :root {
+            --tsinghua-purple: #660874;
+            --amber-gold: #FFBF00;
+            --light-bg: #FDFDFD;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background-color: var(--light-bg);
+            font-family: 'PingFang SC', 'STHeiti', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+
+        .dynamic-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, rgba(102, 8, 116, 0.08) 0%, transparent 70%);
+            z-index: -1;
+            animation: breathe 10s infinite alternate ease-in-out;
+        }
+
+        @keyframes breathe {
+            0% { transform: scale(1); opacity: 0.3; }
+            100% { transform: scale(1.3); opacity: 0.7; }
+        }
+
+        .container {
+            background: #ffffff;
+            width: 360px;
+            padding: 45px 25px;
+            border-radius: 4px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.08);
+            position: relative;
+            border-top: 8px solid var(--tsinghua-purple);
+        }
+
+        .header-label {
+            font-size: 10px;
+            letter-spacing: 6px;
+            color: #BBB;
+            margin-bottom: 20px;
+        }
+
+        .city-badge {
+            background: var(--tsinghua-purple);
+            color: var(--amber-gold);
+            display: inline-block;
+            padding: 4px 16px;
+            font-size: 13px;
+            margin-bottom: 30px;
+            border-radius: 2px;
+        }
+
+        .main-btn {
+            background: var(--tsinghua-purple);
+            color: var(--amber-gold);
+            border: none;
+            padding: 16px 40px;
+            font-size: 16px;
+            cursor: pointer;
+            letter-spacing: 2px;
+            font-weight: bold;
+            width: 100%;
+        }
+
+        #result-view {
+            display: none;
+            animation: fadeIn 0.8s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .price-num {
+            font-size: 84px;
+            font-weight: 800;
+            color: var(--tsinghua-purple);
+            line-height: 1;
+            font-family: 'Georgia', serif;
+        }
+
+        .price-desc {
+            font-size: 14px;
+            color: #888;
+            margin: 10px 0 30px;
+        }
+
+        .signal-box {
+            background: #F9F9F9;
+            padding: 20px;
+            color: var(--tsinghua-purple);
+            font-family: "Songti SC", serif;
+            font-size: 18px;
+            border-radius: 2px;
+            margin-bottom: 25px;
+        }
+
+        .copy-btn {
+            background: none;
+            border: 1px solid var(--tsinghua-purple);
+            color: var(--tsinghua-purple);
+            padding: 10px 20px;
+            font-size: 13px;
+            cursor: pointer;
+            margin-bottom: 30px;
+        }
+
+        .pay-notice {
+            text-align: left;
+            font-size: 11px;
+            color: #999;
+            border-left: 2px solid var(--amber-gold);
+            padding-left: 12px;
+            line-height: 1.8;
+        }
+
+        .v-code {
+            font-family: monospace;
+            display: block;
+            color: #CCC;
+            font-size: 9px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="dynamic-bg"></div>
+
+<div class="container">
+    <div class="header-label">ONLINE REDEMPTION</div>
+    <div class="city-badge">活动城市：南京</div>
+
+    <div id="action-view">
+        <p style="color: #666; font-size: 14px; margin-bottom: 40px;">点击下方按钮获取您的专属优惠<br>每位用户仅有一次机会</p>
+        <button class="main-btn" onclick="startRoll()">即刻抽取优惠</button>
+    </div>
+
+    <div id="result-view">
+        <div class="price-num" id="res-p">0</div>
+        <div class="price-desc">您的专属优惠金额 (元)</div>
+        
+        <div class="signal-box" id="res-s">--</div>
+
+        <button class="copy-btn" id="copy-btn" onclick="copyInfo()">复制优惠信息并结算</button>
+
+        <div class="pay-notice">
+            <strong>付款须知：</strong><br>
+            1. 请复制上方信息后联系客服或在支付页面备注。<br>
+            2. 校验码唯一且具备防伪性，修改无效。<br>
+            3. 获取时间：<span id="res-t"></span>
+            <span class="v-code" id="res-v"></span>
+        </div>
+    </div>
+</div>
+
+<script>
+    const SIGNAL_MAP = {
+        60: "浮生半日", 61: "晨露未晞", 62: "晚风信使", 63: "纸上云烟", 64: "此时此刻", 65: "寻常巷陌", 66: "顺颂时祺", 67: "岁序更迭", 68: "见字如面", 69: "月升沧海", 70: "云卷云舒",
+        71: "细雨湿衣", 72: "闲花落地", 73: "疏影横斜", 74: "暗香浮动", 75: "露葵承光", 76: "寒蝉守静", 77: "青松如旧", 78: "望峰息心", 79: "窥谷忘反", 80: "紫气氤氲",
+        81: "逻辑原点", 82: "叙事半径", 83: "观测坐标", 84: "线性留白", 85: "镜像森林", 86: "隐喻之门", 87: "频率共振", 88: "八方来仪", 89: "概率边界", 90: "星轨轨迹",
+        91: "黎明前夜", 92: "破晓之刻", 93: "潮汐引力", 94: "此时微光", 95: "沉静如石", 96: "灵光乍现", 97: "命中注定", 98: "岁月知味", 99: "久别重逢", 100: "满载而归",
+        101: "金石为开", 102: "璞玉待琢", 103: "锦瑟华年", 104: "繁花锦簇", 105: "珠圆玉润", 106: "弦歌不辍", 107: "钟灵毓秀", 108: "圆融无碍", 109: "气象万千", 110: "盛筵启幕",
+        111: "乾坤入袖", 112: "日月同辉", 113: "极目远眺", 114: "海阔天空", 115: "万象更新", 116: "登峰造极", 117: "大巧若拙", 118: "上善若水", 119: "归真返璞", 120: "至真至纯"
+    };
+
+    function startRoll() {
+        const p = Math.floor(Math.random() * (120 - 60 + 1)) + 60;
+        const now = new Date();
+        const t = `${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+        const s = SIGNAL_MAP[p];
+        const v = "V-" + Math.random().toString(36).substr(2, 9).toUpperCase();
+
+        const data = { p, t, s, v };
+        localStorage.setItem('online_promo_2026', JSON.stringify(data));
+        show(data);
+    }
+
+    function show(data) {
+        document.getElementById('action-view').style.display = 'none';
+        document.getElementById('result-view').style.display = 'block';
+        document.getElementById('res-p').innerText = data.p;
+        document.getElementById('res-s').innerText = "「 " + data.s + " 」";
+        document.getElementById('res-t').innerText = data.t;
+        document.getElementById('res-v').innerText = "校验序列: " + data.v;
+    }
+
+    function copyInfo() {
+        const d = JSON.parse(localStorage.getItem('online_promo_2026'));
+        const text = `我的专属优惠金额：${d.p}元\n暗号：${d.s}\n时间：${d.t}\n校验序列：${d.v}\n场次：南京`;
+        navigator.clipboard.writeText(text).then(() => {
+            alert('优惠信息已复制！请前往支付页面粘贴备注。');
+        });
+    }
+
+    window.onload = function() {
+        const saved = localStorage.getItem('online_promo_2026');
+        if (saved) show(JSON.parse(saved));
+    }
+</script>
+
+</body>
+</html>
